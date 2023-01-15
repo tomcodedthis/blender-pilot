@@ -4,7 +4,9 @@
   "publisher": "tomcodedthis",
   "description": "AI Generator for Blender Python API",
   "icon": "blender-pilot.png",
-  "repository": {"url": "https://github.com/tomcodedthis/blender-pilot"},
+  "repository": {
+    "url": "https://github.com/tomcodedthis/blender-pilot"
+  },
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.74.0"
@@ -13,7 +15,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:blender-pilot.sendReq"
+    "onCommand:blender-pilot.sendReq",
+    "onCommand:blender-pilot.setAPI"
   ],
   "main": "./out/extension.js",
   "contributes": {
