@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-// import { setPassword, getPassword } from "keytar";
 import { Configuration, OpenAIApi } from "openai";
 
 type openAIRequest = {

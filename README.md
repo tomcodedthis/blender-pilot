@@ -6,21 +6,21 @@ For the use of Blender Python API, simply enter a prompt to generate your code.
 
 
 ### Step 1 - **Find Commands**:
-![Blender-Pilot: Command List](images/commands.png)
+![Blender-Pilot: Command List](https://github.com/tomcodedthis/blender-pilot/blob/master/images/commands.png?raw=true)
 - CMD + Shift + P
 - Search for 'Blender-Pilot'
 
 ---
 
-### Step 2 - **Your API Key**:
-![Blender-Pilot: Set API Key](images/apiKey.png)
+### Step 2 - **Set Your API Key**:
+![Blender-Pilot: Set API Key](https://github.com/tomcodedthis/blender-pilot/raw/master/images/apiKey.png)
 - Choose Blender-Pilot: Set API Key
 - Enter your OpenAI API Key
 
 ---
 
 ### Step 3 - **Search For Code**:
-![Blender-Pilot: Enter a Prompt](images/search.png)
+![Blender-Pilot: Enter a Prompt](https://github.com/tomcodedthis/blender-pilot/raw/master/images/search.png)
 - Choose Blender-Pilot: Search Code
 - Enter a Prompt to Generate Code
 
@@ -31,11 +31,13 @@ OpenAI Personal API Key [openai.com/account/api-keys](https://beta.openai.com/ap
 
 
 ## Extension Settings
-**Set API Key:**
-![Blender-Pilot: Set API Key](images/commands.png)
+**Set API Key**
 
-**AI Model Settings:**
-![Blender-Pilot: AI Model Settings](images/aiSettings.png)
+![Blender-Pilot: Set API Key](https://github.com/tomcodedthis/blender-pilot/blob/master/images/apiKey.png?raw=true)
+
+**AI Model Settings**
+
+![Blender-Pilot: AI Model Settings](https://github.com/tomcodedthis/blender-pilot/blob/master/images/aiSettings.png?raw=true)
 
 
 ## Known Issues
@@ -55,5 +57,13 @@ Added Configuration Settings:
 - Store API Key
 - Set AI Model
 - Customisable Prefix
+
+---
+
+### 0.0.3 - 0.0.6
+Feat:
+- New Logo
+Fixed:
+- README Formatting
 
 ---
