@@ -3,11 +3,11 @@
   "displayName": "Blender-Pilot",
   "publisher": "tomcodedthis",
   "description": "AI Generator for Blender Python API",
-  "icon": "blender-pilot.png",
+  "icon": "images/blender-pilot.png",
   "repository": {
     "url": "https://github.com/tomcodedthis/blender-pilot"
   },
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -15,21 +15,53 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:blender-pilot.sendReq",
-    "onCommand:blender-pilot.setAPI"
+    "onCommand:blender-pilot.startReq",
+    "onCommand:blender-pilot.goToAPIKey",
+    "onCommand:blender-pilot.goToAISettings"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "blender-pilot.sendReq",
-        "title": "Blender-Pilot: Search Code"
+        "command": "blender-pilot.startReq",
+        "title": "Blender-Pilot: Search for Code"
       },
       {
-        "command": "blender-pilot.setAPI",
+        "command": "blender-pilot.goToAPIKey",
         "title": "Blender-Pilot: Set API Key"
+      },
+      {
+        "command": "blender-pilot.goToAISettings",
+        "title": "Blender-Pilot: Set AI Settings"
       }
-    ]
+    ],
+    "configuration": {
+      "title": "Blender-Pilot",
+      "properties": {
+        "Blender-Pilot.AI.model": {
+          "type": "string",
+          "description": "Choose which Model to use to generate code.",
+          "default": "GBT3",
+          "enum": [
+            "GBT3",
+            "Codex"
+          ],
+          "enumDescriptions": [
+            "GBT3: Low-cost but more accurate",
+            "Codex: Free but less accurate"
+          ]
+        },
+        "Blender-Pilot.AI.prefix": {
+          "type": "string",
+          "description": "How you want to start each request.",
+          "default": "Blender v3.3 Python API"
+        },
+        "Blender-Pilot.API.key": {
+          "type": "string",
+          "description": "Set your API Key to enable the extension."
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -40,7 +72,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
-    "@types/node": "16.x",
+    "@types/node": "^16.18.11",
     "@types/vscode": "^1.74.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",

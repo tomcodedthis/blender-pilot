@@ -1,98 +1,144 @@
 import * as vscode from "vscode";
-import { setPassword, getPassword } from "keytar";
+// import { setPassword, getPassword } from "keytar";
 import { Configuration, OpenAIApi } from "openai";
 
+type openAIRequest = {
+  model: string;
+  prompt: string;
+  temperature: number;
+  max_tokens: number;
+  top_p: number;
+  frequency_penalty: number;
+  presence_penalty: number;
+};
+
 export async function activate(context: vscode.ExtensionContext) {
-  const setAPI = vscode.commands.registerCommand(
-    "blender-pilot.setAPI",
+  const askForKey = vscode.commands.registerCommand(
+    "blender-pilot.goToAPIKey",
+    () => goToAPIKey("")
+  );
+
+  const goToSettings = vscode.commands.registerCommand(
+    "blender-pilot.goToAISettings",
+    () => goToAISettings()
+  );
+
+  const startSearch = vscode.commands.registerCommand(
+    "blender-pilot.startReq",
     async () => {
-      await vscode.window
-        .showInputBox({
-          title: "Set API Key",
-          placeHolder: "Enter your Open API Key here...",
-        })
-        .then((key) => {
-          setAPIKey(key as string);
-        });
+      const config = vscode.workspace.getConfiguration("Blender-Pilot");
+      const key = config.get("API.key") as string;
+
+      if (!key || key.length === 0) {
+        return goToAPIKey("I need a key to start!");
+      }
+
+      const configuration = new Configuration({ apiKey: key });
+      const openai = new OpenAIApi(configuration);
+
+      if (!configuration || !openai) {
+        return goToAPIKey("Your API key isn't valid!");
+      }
+
+      startRequest(config, openai);
     }
   );
 
-  const sendRequest = vscode.commands.registerCommand(
-    "blender-pilot.sendReq",
-    async () => {
-      vscode.window.withProgress(
-        { location: vscode.ProgressLocation.Notification },
-        async (progress) => {
-          try {
-            const key = await getAPIKey();
-            const configuration = new Configuration({ apiKey: key });
-            const openai = new OpenAIApi(configuration);
-            const editor = vscode.window.activeTextEditor;
+  context.subscriptions.push(askForKey, goToSettings, startSearch);
+}
 
-            if (!key) {
-              vscode.window.showErrorMessage(
-                "Please enter a valid OpenAI API key."
-              );
-              vscode.window.showInputBox({});
-            }
-            if (!editor) {
-              return vscode.window.showErrorMessage(
-                "Ensure a text editor window is open!"
-              );
-            }
+function goToAPIKey(message: string) {
+  vscode.window.showWarningMessage(message);
+  vscode.commands
+    .executeCommand("workbench.action.openSettings", "blender-pilot.API.key")
+    .then(() => {
+      vscode.commands.executeCommand("workbench.action.openWorkspaceSettings");
+    });
+}
 
-            progress.report({ message: "Please enter a prompt..." });
+function goToAISettings() {
+  vscode.commands
+    .executeCommand("workbench.action.openSettings", "blender-pilot.AI")
+    .then(() => {
+      vscode.commands.executeCommand("workbench.action.openWorkspaceSettings");
+    });
+}
 
-            await vscode.window
-              .showInputBox({
-                title: "Input AI Prompt",
-                placeHolder: "Enter Blender Python Prompt here...",
-              })
-              .then(async (prompt) => {
-                progress.report({ message: "Fetching data response..." });
-
-                await openai
-                  .createCompletion({
-                    model: "text-davinci-003",
-                    prompt: "blender v3.3 python API " + prompt,
-                    temperature: 0.8,
-                    max_tokens: 2048,
-                    top_p: 1,
-                    frequency_penalty: 0,
-                    presence_penalty: 0,
-                  })
-                  .then((response) => {
-                    if (editor) {
-                      editor.edit((line) => {
-                        line.insert(
-                          editor.selection.end,
-                          response.data.choices[0].text as string
-                        );
-                      });
-
-                      vscode.window.setStatusBarMessage("Success!", 5000);
-                    }
-                  });
-              });
-          } catch (error: any) {
-            vscode.window.showErrorMessage(`${error}`);
-          }
+function startRequest(
+  config: vscode.WorkspaceConfiguration,
+  openai: OpenAIApi
+) {
+  vscode.window.withProgress(
+    { location: vscode.ProgressLocation.Notification },
+    async (progress) => {
+      try {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+          return vscode.window.showErrorMessage(
+            "Ensure a text editor window is open!"
+          );
         }
-      );
+
+        const aiMode = (config.get("AI.prefix") as string) || "GBT3";
+        const aiPrefix =
+          (config.get("AI.prefix") as string) || "Blender v3.3 Python API";
+
+        progress.report({ message: "What do you need me to do?" });
+
+        await vscode.window
+          .showInputBox({
+            title: "Input AI Prompt",
+            placeHolder: "What can I help you with?",
+          })
+          .then(async (prompt) => {
+            const inputRequest = writeRequest(
+              aiMode,
+              aiPrefix,
+              prompt as string
+            );
+
+            progress.report({ message: "Hmm, let me think..." });
+
+            await openai.createCompletion(inputRequest).then((response) => {
+              editor.edit((line) => {
+                line.insert(
+                  editor.selection.end,
+                  response.data.choices[0].text as string
+                );
+              });
+
+              vscode.window.setStatusBarMessage("Here's what I know...", 5000);
+            });
+          });
+      } catch (error: any) {
+        vscode.window.showErrorMessage(`${error}`, {
+          modal: true,
+          detail: `Check your API Key is valid.`,
+        });
+      }
     }
   );
-
-  context.subscriptions.push(setAPI, sendRequest);
 }
 
-async function setAPIKey(key: string) {
-  await setPassword("blender-pilot", "OPENAI_API_KEY", key).then(() => {
-    vscode.window.setStatusBarMessage("OpenAI API Key Set", 5000);
-  });
-}
+function writeRequest(aiMode: string, aiPrefix: string, prompt: string) {
+  const inputPrompt = aiPrefix + " " + prompt;
 
-async function getAPIKey() {
-  return (await getPassword("blender-pilot", "OPENAI_API_KEY")) as string;
+  let defaultRequest: openAIRequest = {
+    model: "text-davinci-003",
+    prompt: inputPrompt,
+    temperature: 0.6,
+    max_tokens: 2048,
+    top_p: 1,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+  };
+
+  if (aiMode === "Codex") {
+    defaultRequest.model = "code-davinci-002";
+    defaultRequest.temperature = 0.5;
+  }
+
+  return defaultRequest;
 }
 
 export function deactivate() {}
